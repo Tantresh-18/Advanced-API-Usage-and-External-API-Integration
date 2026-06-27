@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 7 - Advanced API & External Integrations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --bg: #F9FAFB;
+      --surface: #FFFFFF;
+      --text-main: #111827;
+      --text-muted: #6B7280;
+      --border: #E5E7EB;
+      --success: #10B981;
+      --danger: #EF4444;
+    }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+      box-sizing: border-box;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+      border: 1px solid var(--border);
+    }
+
+    .header-section {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 0.85rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--bg);
+      border-color: var(--text-muted);
+    }
+
+    .data-container {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      min-height: 200px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .status-message {
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    
+    .status-success { background: #ECFDF5; color: var(--success); border: 1px solid #A7F3D0; display: block; }
+    .status-error { background: #FEF2F2; color: var(--danger); border: 1px solid #FECACA; display: block; }
+    
+    .user-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .user-card:last-child { margin-bottom: 0; }
+    .user-card h3 { margin: 0 0 0.5rem 0; font-size: 1.1rem; }
+    .user-card p { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <div class="header-section">
+        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem;">
+          <i class="bi bi-cloud-arrow-down-fill"></i>
+        </div>
+        <h1>Advanced APIs & External Integrations</h1>
+        <p class="subtitle">OAuth Simulation, Rate Limiting & External Data Fetching</p>
+      </div>
+
+      <div id="statusBox" class="status-message"></div>
+
+      <div class="controls">
+        <button class="btn btn-outline" onclick="setValidToken()">
+          <i class="bi bi-shield-check"></i> Valid Token
+        </button>
+        <button class="btn btn-outline" onclick="setInvalidToken()">
+          <i class="bi bi-shield-x"></i> Invalid Token
+        </button>
+        <button class="btn btn-primary" onclick="fetchExternalData()">
+          <i class="bi bi-arrow-repeat"></i> Fetch External Data
+        </button>
+      </div>
+
+      <div class="data-container" id="dataContainer">
+        <div style="text-align:center; color:var(--text-muted); padding-top:3rem;">
+          Select a token configuration, then fetch external data.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentToken = 'mock-oauth-token-123';
+    const statusBox = document.getElementById('statusBox');
+    const dataContainer = document.getElementById('dataContainer');
+
+    function showStatus(msg, type) {
+      statusBox.className = `status-message status-${type}`;
+      statusBox.innerHTML = type === 'success' 
+        ? `<i class="bi bi-check-circle-fill"></i> ${msg}`
+        : `<i class="bi bi-exclamation-triangle-fill"></i> ${msg}`;
+    }
+
+    function setValidToken() {
+      currentToken = 'mock-oauth-token-123';
+      showStatus('Valid OAuth token attached to headers.', 'success');
+    }
+
+    function setInvalidToken() {
+      currentToken = 'wrong-token-abc';
+      showStatus('Invalid token attached. Expect unauthorized error.', 'error');
+    }
+
+    async function fetchExternalData() {
+      dataContainer.innerHTML = '<div style="text-align:center; padding-top:3rem; color:var(--text-muted);"><i class="bi bi-hourglass-split"></i> Fetching...</div>';
+      
+      try {
+        const response = await fetch('/api/external-data', {
+          headers: {
+            'Authorization': `Bearer ${currentToken}`
+          }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showStatus('External data fetched successfully!', 'success');
+          renderData(data);
+        } else {
+          showStatus(`API Error: ${data.error}`, 'error');
+          dataContainer.innerHTML = `<div style="text-align:center; color:var(--danger); padding-top:3rem;">Failed to load data.</div>`;
+        }
+      } catch (error) {
+        showStatus('Network error occurred.', 'error');
+        dataContainer.innerHTML = '';
+      }
+    }
+
+    function renderData(users) {
+      if (!Array.isArray(users)) {
+        dataContainer.innerHTML = `<pre>${JSON.stringify(users, null, 2)}</pre>`;
+        return;
+      }
+
+      dataContainer.innerHTML = users.map(user => `
+        <div class="user-card">
+          <h3>${user.name} (@${user.username})</h3>
+          <p><i class="bi bi-envelope"></i> ${user.email} &nbsp;|&nbsp; <i class="bi bi-globe"></i> ${user.website}</p>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
